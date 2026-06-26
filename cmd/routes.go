@@ -335,10 +335,27 @@ func routesExport(client *pritunl.Client, formatter *output.Formatter, serverID,
 	// Convert to RouteData
 	routeData := make([]routes.RouteData, len(routesList))
 	for i, r := range routesList {
+		// When NAT is enabled, we need a nat_interface
+		// If not provided by server, use default
+		natInterface := r.NATInterface
+		if r.NAT && natInterface == "" {
+			// Try to guess a reasonable default
+			// Most common: eth0, tun0, etc - but we'll use "eth0" as fallback
+			natInterface = "eth0"
+		}
+
+		// If metric is 0 or not set, use default value of 100
+		metric := r.Metric
+		if metric == 0 {
+			metric = 100
+		}
+
 		routeData[i] = routes.RouteData{
-			Network:    r.Network,
-			NAT:        r.NAT,
-			NetGateway: r.NetGateway,
+			Network:      r.Network,
+			NAT:          r.NAT,
+			NATInterface: natInterface,
+			NetGateway:   r.NetGateway,
+			Metric:       metric,
 		}
 	}
 

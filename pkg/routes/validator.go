@@ -77,8 +77,8 @@ func (v *Validator) ValidateRoutes(routes []RouteData) []ValidationError {
 			})
 		}
 
-		// Validate metric
-		if r.Metric < 1 || r.Metric > 32767 {
+		// Validate metric - allow 0 (will be set to default 100) or 1-32767
+		if r.Metric != 0 && (r.Metric < 1 || r.Metric > 32767) {
 			v.errors = append(v.errors, ValidationError{
 				Index:   i,
 				Network: r.Network,

@@ -172,10 +172,18 @@ func SaveToCSV(routes []RouteData, filename string) error {
 
 // ToSDKRoute converts RouteData to SDK ServerRoute.
 func (r RouteData) ToSDKRoute() pritunl.ServerRoute {
+	// Use metric with default fallback
+	metric := r.Metric
+	if metric == 0 {
+		metric = 100
+	}
+
 	return pritunl.ServerRoute{
-		Network:    r.Network,
-		NAT:        r.NAT,
-		NetGateway: r.NetGateway,
+		Network:      r.Network,
+		NAT:          r.NAT,
+		NATInterface: r.NATInterface,
+		NetGateway:   r.NetGateway,
+		Metric:       metric,
 	}
 }
 
