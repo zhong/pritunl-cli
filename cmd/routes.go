@@ -139,28 +139,33 @@ Examples:
 }
 
 func routesList(client *pritunl.Client, formatter *output.Formatter, serverID, outputFmt string) error {
-	server, err := client.GetServer(serverID)
+	// Try to get routes from the dedicated /server/{id}/route endpoint
+	routesList, err := client.GetServerRoutes(serverID)
 	if err != nil {
-		return fmt.Errorf("get server: %w", err)
+		// If that fails, fall back to trying to get from server detail
+		server, err2 := client.GetServer(serverID)
+		if err2 != nil {
+			return fmt.Errorf("get server: %w", err2)
+		}
+		routesList = server.Routes
 	}
 
-	// Debug: Show what we got
-	fmt.Fprintf(os.Stderr, "DEBUG: Server Routes length: %d\n", len(server.Routes))
-	if len(server.Routes) > 0 {
-		fmt.Fprintf(os.Stderr, "DEBUG: Routes data: %+v\n", server.Routes)
+	fmt.Fprintf(os.Stderr, "DEBUG: Routes length: %d\n", len(routesList))
+	if len(routesList) > 0 {
+		fmt.Fprintf(os.Stderr, "DEBUG: Routes data: %+v\n", routesList)
 	}
 
 	if outputFmt == "table" {
-		if len(server.Routes) == 0 {
+		if len(routesList) == 0 {
 			fmt.Println("(no routes)")
 			return nil
 		}
 
 		table := &output.Table{
 			Headers: []string{"Network", "NAT", "Net Gateway"},
-			Rows:    make([][]string, len(server.Routes)),
+			Rows:    make([][]string, len(routesList)),
 		}
-		for i, r := range server.Routes {
+		for i, r := range routesList {
 			table.Rows[i] = []string{
 				r.Network,
 				fmt.Sprintf("%v", r.NAT),
@@ -170,7 +175,7 @@ func routesList(client *pritunl.Client, formatter *output.Formatter, serverID, o
 		return formatter.OutputTable(table)
 	}
 
-	return formatter.Output(server.Routes)
+	return formatter.Output(routesList)
 }
 
 func routesAdd(client *pritunl.Client, formatter *output.Formatter, serverID, network, comment string, metric int, nat bool) error {
@@ -300,14 +305,20 @@ func routesValidate(formatter *output.Formatter, filename string) error {
 }
 
 func routesExport(client *pritunl.Client, formatter *output.Formatter, serverID, filename string) error {
-	server, err := client.GetServer(serverID)
+	// Try to get routes from the dedicated /server/{id}/route endpoint
+	routesList, err := client.GetServerRoutes(serverID)
 	if err != nil {
-		return fmt.Errorf("get server: %w", err)
+		// If that fails, fall back to trying to get from server detail
+		server, err2 := client.GetServer(serverID)
+		if err2 != nil {
+			return fmt.Errorf("get server: %w", err2)
+		}
+		routesList = server.Routes
 	}
 
 	// Convert to RouteData
-	routeData := make([]routes.RouteData, len(server.Routes))
-	for i, r := range server.Routes {
+	routeData := make([]routes.RouteData, len(routesList))
+	for i, r := range routesList {
 		routeData[i] = routes.RouteData{
 			Network:    r.Network,
 			NAT:        r.NAT,
