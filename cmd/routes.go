@@ -21,6 +21,7 @@ Subcommands:
   list <server-id>              List routes for a server
   add <server-id>               Add a single route
   batch-add <server-id>         Add routes from file (JSON or CSV)
+  replace <server-id>           Replace ALL routes with routes from file
   validate                      Validate route file
   export <server-id>            Export server routes to file
 
@@ -135,6 +136,18 @@ Note: Pritunl social edition does not support deleting routes via API.
 			*file = *csv
 		}
 		return routesBatchAdd(client, formatter, args[0], *file, *skipConfirm)
+
+	case "replace":
+		if len(args) == 0 {
+			return fmt.Errorf("server ID required")
+		}
+		if *file == "" && *csv == "" {
+			return fmt.Errorf("-file or -csv flag required")
+		}
+		if *csv != "" {
+			*file = *csv
+		}
+		return routesReplace(client, formatter, args[0], *file, *skipConfirm)
 
 	case "validate":
 		if *file == "" && *csv == "" {
@@ -371,5 +384,93 @@ func routesExport(client *pritunl.Client, formatter *output.Formatter, serverID,
 	}
 
 	formatter.PrintSuccess(fmt.Sprintf("Exported %d routes to %s", len(routeData), filename))
+	return nil
+}
+
+func routesReplace(client *pritunl.Client, formatter *output.Formatter, serverID, filename string, skipConfirm bool) error {
+	// Load routes from file
+	var routeData []routes.RouteData
+	var err error
+
+	if strings.HasSuffix(strings.ToLower(filename), ".csv") {
+		routeData, err = routes.LoadFromCSV(filename)
+	} else {
+		routeData, err = routes.LoadFromJSON(filename)
+	}
+
+	if err != nil {
+		return fmt.Errorf("load routes: %w", err)
+	}
+
+	formatter.PrintInfo(fmt.Sprintf("Loaded %d routes from %s", len(routeData), filename))
+
+	// Validate
+	validator := routes.NewValidator()
+	validator.ValidateRoutes(routeData)
+	if validator.HasErrors() {
+		fmt.Println(validator.ErrorsStr())
+		return fmt.Errorf("validation failed")
+	}
+
+	// Get current routes to show what will be replaced
+	currentRoutes, err := client.GetServerRoutes(serverID)
+	if err != nil {
+		return fmt.Errorf("get current routes: %w", err)
+	}
+
+	fmt.Printf("\n⚠️  WARNING: This will REPLACE all routes\n")
+	fmt.Printf("  Current routes: %d\n", len(currentRoutes))
+	fmt.Printf("  New routes: %d\n", len(routeData))
+
+	// Show current routes
+	if len(currentRoutes) > 0 {
+		fmt.Println("\n  Current routes to be DELETED:")
+		for _, r := range currentRoutes {
+			fmt.Printf("    - %s\n", r.Network)
+		}
+	}
+
+	// Show new routes
+	if len(routeData) > 0 {
+		fmt.Println("\nPreview of new routes:")
+		table := &output.Table{
+			Headers: []string{"Network", "NAT", "Metric"},
+			Rows:    make([][]string, len(routeData)),
+		}
+		for i, r := range routeData {
+			table.Rows[i] = []string{
+				r.Network,
+				fmt.Sprintf("%v", r.NAT),
+				fmt.Sprintf("%d", r.Metric),
+			}
+		}
+		formatter.OutputTable(table)
+	}
+
+	// Ask for confirmation
+	if !skipConfirm {
+		fmt.Printf("\n⚠️  This action will DELETE %d routes and ADD %d new routes.\n", len(currentRoutes), len(routeData))
+		fmt.Printf("Continue? (y/n): ")
+		reader := bufio.NewReader(os.Stdin)
+		response, _ := reader.ReadString('\n')
+		if strings.ToLower(strings.TrimSpace(response)) != "y" {
+			fmt.Println("Cancelled")
+			return nil
+		}
+	}
+
+	// Convert to SDK routes
+	var sdkRoutes []pritunl.ServerRoute
+	for _, r := range routeData {
+		sdkRoutes = append(sdkRoutes, r.ToSDKRoute())
+	}
+
+	// Replace routes
+	fmt.Println("\nReplacing routes...")
+	if err := client.ReplaceRoutes(serverID, sdkRoutes); err != nil {
+		return fmt.Errorf("replace routes: %w", err)
+	}
+
+	formatter.PrintSuccess(fmt.Sprintf("Successfully replaced routes: deleted %d, added %d", len(currentRoutes), len(routeData)))
 	return nil
 }
