@@ -1,0 +1,20 @@
+# Pritunl CLI Configuration Example
+# Location: ~/.pritunl/config.yaml
+
+# Pritunl server base URL
+base_url: https://pritunl.example.com
+
+# API Token (enable via: python enable_pritunl_api_token_nopymongo.py)
+api_token: your_api_token_here_32_chars_long
+
+# API Secret
+api_secret: your_api_secret_here_32_chars_long
+
+# Skip TLS verification (useful for self-signed certificates)
+insecure: true
+
+# Default output format: table, json, or yaml
+output_format: table
+
+# Optional: default server ID (for convenience)
+default_server_id: 5f1234567890abcdef000000

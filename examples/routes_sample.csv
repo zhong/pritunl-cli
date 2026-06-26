@@ -1,0 +1,8 @@
+network,comment,metric,nat,nat_interface,advertise,net_gateway
+10.0.0.0/24,Office Network - Building A,100,false,,false,false
+10.0.1.0/24,Office Network - Building B,100,false,,false,false
+10.0.2.0/24,Lab Environment,100,false,,false,false
+192.168.1.0/24,Remote Site Shanghai,100,true,eth0,false,false
+192.168.2.0/24,Remote Site Shenzhen,100,true,eth0,false,false
+172.16.0.0/16,Docker Containers,50,false,,false,false
+172.17.0.0/16,Kubernetes Cluster,50,false,,false,false

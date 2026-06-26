@@ -1,0 +1,46 @@
+[
+  {
+    "network": "10.0.0.0/24",
+    "comment": "Office Network - Building A",
+    "metric": 100,
+    "nat": false
+  },
+  {
+    "network": "10.0.1.0/24",
+    "comment": "Office Network - Building B",
+    "metric": 100,
+    "nat": false
+  },
+  {
+    "network": "10.0.2.0/24",
+    "comment": "Lab Environment",
+    "metric": 100,
+    "nat": false
+  },
+  {
+    "network": "192.168.1.0/24",
+    "comment": "Remote Site Shanghai",
+    "metric": 100,
+    "nat": true,
+    "nat_interface": "eth0"
+  },
+  {
+    "network": "192.168.2.0/24",
+    "comment": "Remote Site Shenzhen",
+    "metric": 100,
+    "nat": true,
+    "nat_interface": "eth0"
+  },
+  {
+    "network": "172.16.0.0/16",
+    "comment": "Docker Containers",
+    "metric": 50,
+    "nat": false
+  },
+  {
+    "network": "172.17.0.0/16",
+    "comment": "Kubernetes Cluster",
+    "metric": 50,
+    "nat": false
+  }
+]
