@@ -367,6 +367,17 @@ func routesExport(client *pritunl.Client, formatter *output.Formatter, serverID,
 
 func routesDelete(client *pritunl.Client, formatter *output.Formatter, serverID, network string) error {
 	if err := client.DeleteRoute(serverID, network); err != nil {
+		// Check if it's a 404 error - Pritunl social edition may not support DELETE routes
+		if strings.Contains(err.Error(), "404") {
+			return fmt.Errorf(`delete route failed: Pritunl social edition may not support deleting routes via API.
+
+Possible solutions:
+1. Delete the route manually through the Pritunl web UI
+2. Use the batch-add command to upload a new routes file without this route
+3. Check if your Pritunl server supports the DELETE /server/{id}/route/{network} API endpoint
+
+Error: %v`, err)
+		}
 		return fmt.Errorf("delete route: %w", err)
 	}
 

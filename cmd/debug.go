@@ -81,7 +81,14 @@ func debugRoutes(client *pritunl.Client, serverID string) error {
 
 	fmt.Printf("Routes Count: %d\n", len(server.Routes))
 	fmt.Printf("Routes Field Present: %v\n", server.Routes != nil)
-	
+
+	if len(server.Routes) > 0 {
+		fmt.Println("\nRoutes Details:")
+		for i, r := range server.Routes {
+			fmt.Printf("[%d] Network: %s, NAT: %v, NetGateway: %v\n", i, r.Network, r.NAT, r.NetGateway)
+		}
+	}
+
 	jsonData, _ := json.MarshalIndent(server.Routes, "", "  ")
 	fmt.Println(string(jsonData))
 	return nil
