@@ -45,6 +45,7 @@ Examples:
   pritunl routes batch-add 5f1234567890abcdef000000 -csv routes.csv
   pritunl routes add 5f1234567890abcdef000000 -network 10.0.0.0/24 -comment "Office"
   pritunl routes export 5f1234567890abcdef000000 -file backup.json
+  pritunl routes delete 5f1234567890abcdef000000 -network 10.0.0.0/24
 `)
 		return nil
 	}
