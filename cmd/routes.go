@@ -66,11 +66,38 @@ Examples:
 	insecure := fs.Bool("insecure", false, "Skip TLS verification")
 	skipConfirm := fs.Bool("skip-confirm", false, "Skip confirmation")
 
-	// Parse flags from os.Args[2:] (skip program name and subcommand)
-	// This way positional args come before flags work correctly
-	if err := fs.Parse(os.Args[2:]); err != nil {
+	// Build the args to parse, putting flags before positional args
+	// This is necessary because flag.Parse stops at the first non-flag argument
+	var parseArgs []string
+	var positionalArgs []string
+
+	argsToProcess := os.Args[2:]
+
+	for i := 0; i < len(argsToProcess); i++ {
+		arg := argsToProcess[i]
+		if strings.HasPrefix(arg, "-") {
+			// This is a flag
+			parseArgs = append(parseArgs, arg)
+			// Check if this flag takes a value
+			if i+1 < len(argsToProcess) && !strings.HasPrefix(argsToProcess[i+1], "-") {
+				i++
+				parseArgs = append(parseArgs, argsToProcess[i])
+			}
+		} else {
+			// This is a positional argument
+			positionalArgs = append(positionalArgs, arg)
+		}
+	}
+
+	// Append positional args after flags
+	parseArgs = append(parseArgs, positionalArgs...)
+
+	// Parse flags from restructured args
+	if err := fs.Parse(parseArgs); err != nil {
 		return err
 	}
+
+	args := fs.Args()
 
 	cfg, err := loadConfigWithOverrides(*token, *secret, *base, *insecure)
 	if err != nil {
@@ -79,8 +106,6 @@ Examples:
 
 	client := pritunl.NewClient(cfg.BaseURL, cfg.APIToken, cfg.APISecret, cfg.Insecure)
 	formatter := output.NewFormatter(*outputFormat)
-
-	args := fs.Args()
 
 	switch subCmd {
 	case "list":
