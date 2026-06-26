@@ -66,8 +66,11 @@ Examples:
 	insecure := fs.Bool("insecure", false, "Skip TLS verification")
 	skipConfirm := fs.Bool("skip-confirm", false, "Skip confirmation")
 
-	os.Args = append([]string{os.Args[0]}, os.Args[2:]...)
-	fs.Parse(os.Args[1:])
+	// Parse flags from os.Args[2:] (skip program name and subcommand)
+	// This way positional args come before flags work correctly
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
 
 	cfg, err := loadConfigWithOverrides(*token, *secret, *base, *insecure)
 	if err != nil {
