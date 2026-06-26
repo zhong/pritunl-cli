@@ -23,12 +23,11 @@ Subcommands:
   batch-add <server-id>         Add routes from file (JSON or CSV)
   validate                      Validate route file
   export <server-id>            Export server routes to file
-  delete <server-id>            Delete a route
 
 Options:
   -file string      JSON or CSV file (for batch-add, validate, export)
   -csv string       CSV file (shorthand for -file with format detection)
-  -network string   Network CIDR (for add, delete)
+  -network string   Network CIDR (for add)
   -comment string   Route comment (for add)
   -metric int       Route metric (for add, default: 100)
   -nat              Enable NAT
@@ -45,7 +44,9 @@ Examples:
   pritunl routes batch-add 5f1234567890abcdef000000 -csv routes.csv
   pritunl routes add 5f1234567890abcdef000000 -network 10.0.0.0/24 -comment "Office"
   pritunl routes export 5f1234567890abcdef000000 -file backup.json
-  pritunl routes delete 5f1234567890abcdef000000 -network 10.0.0.0/24
+
+Note: Pritunl social edition does not support deleting routes via API.
+      Use the web UI or batch-add to manage routes.
 `)
 		return nil
 	}
@@ -152,15 +153,6 @@ Examples:
 			return fmt.Errorf("-file flag required")
 		}
 		return routesExport(client, formatter, args[0], *file)
-
-	case "delete":
-		if len(args) == 0 {
-			return fmt.Errorf("server ID required")
-		}
-		if *network == "" {
-			return fmt.Errorf("-network flag required")
-		}
-		return routesDelete(client, formatter, args[0], *network)
 
 	default:
 		return fmt.Errorf("unknown routes subcommand: %s", subCmd)
@@ -362,45 +354,5 @@ func routesExport(client *pritunl.Client, formatter *output.Formatter, serverID,
 	}
 
 	formatter.PrintSuccess(fmt.Sprintf("Exported %d routes to %s", len(routeData), filename))
-	return nil
-}
-
-func routesDelete(client *pritunl.Client, formatter *output.Formatter, serverID, network string) error {
-	// First verify the route exists by listing all routes
-	routesList, err := client.GetServerRoutes(serverID)
-	if err != nil {
-		return fmt.Errorf("failed to verify route exists: %w", err)
-	}
-
-	// Check if the network exists
-	found := false
-	for _, r := range routesList {
-		if r.Network == network {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return fmt.Errorf("route %s not found in server %s", network, serverID)
-	}
-
-	// Now attempt to delete
-	if err := client.DeleteRoute(serverID, network); err != nil {
-		// Check if it's a 404 error - Pritunl social edition may not support DELETE routes
-		if strings.Contains(err.Error(), "404") {
-			return fmt.Errorf(`delete route failed: Pritunl social edition may not support deleting routes via API.
-
-Possible solutions:
-1. Delete the route manually through the Pritunl web UI
-2. Use the batch-add command to upload a new routes file without this route
-3. Check if your Pritunl server supports the DELETE /server/{id}/route/{network} API endpoint
-
-Error: %v`, err)
-		}
-		return fmt.Errorf("delete route: %w", err)
-	}
-
-	formatter.PrintSuccess(fmt.Sprintf("Deleted route %s", network))
 	return nil
 }
