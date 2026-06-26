@@ -105,6 +105,19 @@ Options:
 		formatter.PrintSuccess(fmt.Sprintf("Server %sd", subCmd))
 		return nil
 
+	case "delete":
+		args := fs.Args()
+		if len(args) == 0 {
+			return fmt.Errorf("server ID required")
+		}
+
+		if err := client.DeleteServer(args[0]); err != nil {
+			return fmt.Errorf("delete server: %w", err)
+		}
+
+		formatter.PrintSuccess(fmt.Sprintf("Server %s deleted", args[0]))
+		return nil
+
 	default:
 		return fmt.Errorf("unknown server subcommand: %s", subCmd)
 	}
