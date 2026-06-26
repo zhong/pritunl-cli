@@ -366,6 +366,26 @@ func routesExport(client *pritunl.Client, formatter *output.Formatter, serverID,
 }
 
 func routesDelete(client *pritunl.Client, formatter *output.Formatter, serverID, network string) error {
+	// First verify the route exists by listing all routes
+	routesList, err := client.GetServerRoutes(serverID)
+	if err != nil {
+		return fmt.Errorf("failed to verify route exists: %w", err)
+	}
+
+	// Check if the network exists
+	found := false
+	for _, r := range routesList {
+		if r.Network == network {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("route %s not found in server %s", network, serverID)
+	}
+
+	// Now attempt to delete
 	if err := client.DeleteRoute(serverID, network); err != nil {
 		// Check if it's a 404 error - Pritunl social edition may not support DELETE routes
 		if strings.Contains(err.Error(), "404") {
