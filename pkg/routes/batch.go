@@ -3,7 +3,7 @@ package routes
 import (
 	"fmt"
 
-	pritunl "github.com/example/pritunl-go-sdk"
+	pritunl "github.com/zhong/pritunl-go-sdk"
 )
 
 // BatchAddOptions contains options for batch adding routes.

@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/example/pritunl-cli/pkg/config"
+	"github.com/zhong/pritunl-cli/pkg/config"
 )
 
 func loadConfigWithOverrides(token, secret, baseURL string, insecure bool) (*config.Config, error) {

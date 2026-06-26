@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	pritunl "github.com/example/pritunl-go-sdk"
-	"github.com/example/pritunl-cli/pkg/output"
+	pritunl "github.com/zhong/pritunl-go-sdk"
+	"github.com/zhong/pritunl-cli/pkg/output"
 )
 
 // UserCmd handles user subcommands.

@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/example/pritunl-cli/pkg/config"
-	"github.com/example/pritunl-cli/pkg/output"
+	"github.com/zhong/pritunl-cli/pkg/config"
+	"github.com/zhong/pritunl-cli/pkg/output"
 )
 
 // ConfigCmd handles configuration subcommands.

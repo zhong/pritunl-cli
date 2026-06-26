@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	pritunl "github.com/example/pritunl-go-sdk"
+	pritunl "github.com/zhong/pritunl-go-sdk"
 )
 
 // ValidationError represents a validation error for a route.

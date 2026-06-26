@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	pritunl "github.com/example/pritunl-go-sdk"
-	"github.com/example/pritunl-cli/pkg/output"
-	"github.com/example/pritunl-cli/pkg/routes"
+	pritunl "github.com/zhong/pritunl-go-sdk"
+	"github.com/zhong/pritunl-cli/pkg/output"
+	"github.com/zhong/pritunl-cli/pkg/routes"
 )
 
 // RoutesCmd handles route subcommands.

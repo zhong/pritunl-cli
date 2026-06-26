@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/example/pritunl-cli/cmd"
+	"github.com/zhong/pritunl-cli/cmd"
 )
 
 func main() {
@@ -39,7 +39,7 @@ Examples:
   pritunl routes batch-add <server-id> --file routes.json
   pritunl config init
 
-For more information, visit: https://github.com/example/pritunl-cli
+For more information, visit: https://github.com/zhong/pritunl-cli
 `)
 	}
 

@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	pritunl "github.com/example/pritunl-go-sdk"
+	pritunl "github.com/zhong/pritunl-go-sdk"
 )
 
 // RouteData represents a route to be added.

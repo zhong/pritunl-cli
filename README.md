@@ -18,7 +18,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/example/pritunl-cli
+git clone https://github.com/zhong/pritunl-cli
 cd pritunl-cli
 
 # 构建
