@@ -93,6 +93,13 @@ For more information, visit: https://github.com/zhong/pritunl-cli
 			os.Exit(1)
 		}
 
+	case "debug":
+		os.Args = append([]string{filepath.Base(os.Args[0])}, os.Args[2:]...)
+		if err := cmd.DebugCmd(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
 	case "-help", "--help", "-h", "help":
 		flag.Usage()
 

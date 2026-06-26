@@ -144,6 +144,12 @@ func routesList(client *pritunl.Client, formatter *output.Formatter, serverID, o
 		return fmt.Errorf("get server: %w", err)
 	}
 
+	// Debug: Show what we got
+	fmt.Fprintf(os.Stderr, "DEBUG: Server Routes length: %d\n", len(server.Routes))
+	if len(server.Routes) > 0 {
+		fmt.Fprintf(os.Stderr, "DEBUG: Routes data: %+v\n", server.Routes)
+	}
+
 	if outputFmt == "table" {
 		if len(server.Routes) == 0 {
 			fmt.Println("(no routes)")
