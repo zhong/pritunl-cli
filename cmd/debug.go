@@ -15,8 +15,9 @@ func DebugCmd() error {
 		fmt.Println(`Usage: pritunl debug <subcommand> [options]
 
 Subcommands:
-  server <id>       Show raw server JSON response
-  routes <id>       Show raw routes from server response
+  server <id>         Show raw server JSON response
+  routes <id>         Show raw routes from server response
+  test-delete <id> <network>  Test different methods to delete a route
 
 Options:
   -token string     API token
@@ -57,6 +58,11 @@ Options:
 			return fmt.Errorf("server ID required")
 		}
 		return debugRoutes(client, args[0])
+	case "test-delete":
+		if len(args) < 2 {
+			return fmt.Errorf("server ID and network required")
+		}
+		return debugTestDelete(client, args[0], args[1])
 	default:
 		return fmt.Errorf("unknown debug subcommand: %s", subCmd)
 	}
@@ -92,4 +98,48 @@ func debugRoutes(client *pritunl.Client, serverID string) error {
 	jsonData, _ := json.MarshalIndent(server.Routes, "", "  ")
 	fmt.Println(string(jsonData))
 	return nil
+}
+
+func debugTestDelete(client *pritunl.Client, serverID, network string) error {
+	fmt.Printf("Testing route deletion for: %s from server: %s\n\n", network, serverID)
+
+	// Verify route exists
+	routes, err := client.GetServerRoutes(serverID)
+	if err != nil {
+		return fmt.Errorf("get routes: %w", err)
+	}
+
+	found := false
+	for _, r := range routes {
+		if r.Network == network {
+			found = true
+			fmt.Printf("✓ Route found: %s (NAT: %v, NetGateway: %v)\n\n", r.Network, r.NAT, r.NetGateway)
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("route %s not found", network)
+	}
+
+	// Try the standard DELETE method
+	fmt.Println("Testing DELETE method:")
+	err = client.DeleteRoute(serverID, network)
+	if err == nil {
+		fmt.Println("✓ SUCCESS: Route deleted successfully!")
+		return nil
+	}
+
+	fmt.Printf("✗ Failed: %v\n\n", err)
+
+	// If DELETE failed, we need to investigate alternative methods
+	fmt.Println("Investigating alternative deletion methods...")
+	fmt.Println("\nPossible reasons for 404:")
+	fmt.Println("1. API endpoint format is different")
+	fmt.Println("2. URL encoding is incorrect")
+	fmt.Println("3. Pritunl requires a different HTTP method")
+	fmt.Println("4. Pritunl requires the route to be updated via server PUT endpoint")
+	fmt.Println("5. This version of Pritunl doesn't support route deletion")
+
+	return fmt.Errorf("delete failed, investigate further")
 }
