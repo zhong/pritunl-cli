@@ -23,6 +23,13 @@ Subcommands:
   stop <id>         Stop a server
   restart <id>      Restart a server
 
+Create options:
+  -name string      Server name (required)
+  -network string   Network CIDR (default: 10.8.0.0/24)
+  -port int         Port (default: auto-assigned)
+  -protocol string  Protocol: udp or tcp (default: udp)
+  -cipher string    Cipher algorithm (default: aes-128-cbc)
+
 Options:
   -output format    Output format (table, json, yaml)
   -token string     API token
@@ -35,6 +42,13 @@ Options:
 
 	subCmd := os.Args[1]
 	fs := flag.NewFlagSet("server", flag.ContinueOnError)
+
+	// Create options
+	name := fs.String("name", "", "Server name")
+	network := fs.String("network", "10.8.0.0/24", "Network CIDR")
+	port := fs.Int("port", 0, "Port")
+	protocol := fs.String("protocol", "udp", "Protocol")
+	cipher := fs.String("cipher", "aes-128-cbc", "Cipher")
 
 	outputFormat := fs.String("output", "table", "Output format")
 	token := fs.String("token", "", "API token")
@@ -90,6 +104,37 @@ Options:
 			return fmt.Errorf("get server: %w", err)
 		}
 
+		return formatter.Output(server)
+
+	case "create":
+		if *name == "" {
+			return fmt.Errorf("-name flag is required")
+		}
+
+		req := pritunl.CreateServerRequest{
+			Name:     *name,
+			Network:  *network,
+			Protocol: *protocol,
+			Cipher:   *cipher,
+		}
+
+		if *port > 0 {
+			req.Port = *port
+		}
+
+		server, err := client.CreateServer(req)
+		if err != nil {
+			return fmt.Errorf("create server: %w", err)
+		}
+
+		if *outputFormat == "table" {
+			fmt.Printf("Server created successfully:\n")
+			fmt.Printf("  ID:       %s\n", server.ID)
+			fmt.Printf("  Name:     %s\n", server.Name)
+			fmt.Printf("  Network:  %s\n", server.Network)
+			fmt.Printf("  Status:   %s\n", server.Status)
+			return nil
+		}
 		return formatter.Output(server)
 
 	case "start", "stop", "restart":
